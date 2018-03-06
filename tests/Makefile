@@ -17,7 +17,7 @@ MB_TESTCASES=data_multiboot_mmap.o data_multiboot_modules.o
 MOCK_BHYVELOAD=mock/bhyveload.o mock/compat-strlcat.o mock/compat-strlcpy.o
 
 .PHONY: all
-all: test-allocator test-loader test-mock-bhyveload test-multiboot
+all: test-allocator test-mock-bhyveload test-multiboot test-bda
 
 .PHONY: check
 check: all
@@ -28,13 +28,13 @@ check: all
 clean:
 	$(MAKE) -C data/multiboot clean
 	rm -f test-allocator.o
+	rm -f test-bda.o
 	rm -f test-mock-bhyveload.o
-	rm -f test-loader.o
 	rm -f test-multiboot.o
 	rm -f mock/compat-*.o
 	rm -f mock/bhyveload.o
 	rm -f test-allocator
-	rm -f test-loader
+	rm -f test-bda
 	rm -f test-mock-bhyveload
 	rm -f test-multiboot
 	rm -f data_*.o
@@ -61,7 +61,8 @@ test-multiboot: test-multiboot.o ${MB_TESTCASES} ${MOCK_BHYVELOAD} ../libmultibo
 test-mock-bhyveload: test-mock-bhyveload.o  ${MOCK_BHYVELOAD}
 	$(CC) ${LDFLAGS} ${CFLAGS} -o $@ $> ${LIBATF_C} ${LIBELF}
 
-test-loader: mock/bhyveload.o ../libmultiboot_p.a
+test-bda: test-bda.o ${MOCK_BHYVELOAD} ../libmultiboot_p.a
+	$(CC) ${LDFLAGS} ${CFLAGS} -o $@ $> ${LIBATF_C} ${LIBELF}
 
 test-allocator: test-allocator.o ../libmultiboot_p.a
 	$(CC) ${LDFLAGS} ${CFLAGS} -o $@ $> ${LIBATF_C} ${LIBELF}

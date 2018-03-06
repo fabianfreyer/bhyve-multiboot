@@ -7,6 +7,7 @@
 
 #include <loader.h>
 #include <allocator.h>
+#include <bda.h>
 #include <multiboot.h>
 #include <sys/queue.h>
 
@@ -100,6 +101,7 @@ loader_main(struct loader_callbacks *cb, void *arg, int version, int ndisks)
     size_t kernsz = 0, resid = 0;
     void *kernel = NULL;
     struct multiboot *mb = NULL;
+    struct bios_data_area bda;
 
     if (version < USERBOOT_VERSION)
         abort();
@@ -197,6 +199,14 @@ loader_main(struct loader_callbacks *cb, void *arg, int version, int ndisks)
         if (multiboot_info_finalize(mb)) {
             ERROR(ECANCELED, "Could not set up multiboot information structure");
         }
+
+        /* Set up bios data area */
+        memset(&bda, 1, sizeof(struct bios_data_area));
+        bda.com1_base = 0x3f8;
+        bda.com2_base = 0x2f8;
+        bda.memsize = lowmem;
+        bda.crt_base_addr = 0x3d4;
+        CALLBACK(copyin, &bda, 0x400, sizeof(struct bios_data_area));
 
         if (multiboot_enter(mb)) {
             ERROR(ECANCELED, "Could not set up machine state");
